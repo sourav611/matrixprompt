@@ -37,18 +37,7 @@ export function ModeToggle() {
     }
   };
 
-  const getLabel = () => {
-    switch (theme) {
-      case "light":
-        return "Light";
-      case "dark":
-        return "Dark";
-      case "system":
-        return "System";
-      default:
-        return "Light";
-    }
-  };
+
 
   if (!mounted) {
     return (
@@ -69,15 +58,6 @@ export function ModeToggle() {
       whileTap={{ scale: 0.98 }}
       transition={{ type: "spring", stiffness: 400, damping: 17 }}
     >
-       <motion.span
-        key={theme}
-        initial={{ opacity: 0, x: -10 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.2, delay: 0.1 }}
-        className="text-sm font-medium text-foreground min-w-[50px] text-left"
-      >
-        {getLabel()}
-      </motion.span>
       <AnimatePresence mode="wait">
         <motion.div
           key={theme}
@@ -90,8 +70,6 @@ export function ModeToggle() {
           {getIcon()}
         </motion.div>
       </AnimatePresence>
-
-     
     </motion.button>
   );
 }

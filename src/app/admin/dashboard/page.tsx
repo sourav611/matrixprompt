@@ -1,12 +1,12 @@
 "use client"
 
 import React from "react";
-import ImageUploadForm from "../image-upload-form";
+import AdminDashboardPage from "./AdminDashboard";
 
 export default function DashboardPage() {
   return (
     <div>
-      <ImageUploadForm />
+      <AdminDashboardPage />
     </div>
   );
 }

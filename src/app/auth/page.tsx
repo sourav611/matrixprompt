@@ -160,10 +160,10 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-xl max-w-sm">
+          <div className="flex justify-end  bg-white/90 backdrop-blur-sm p-4 rounded-xl shadow-xl max-w-sm ">
             <p className="text-gray-900 font-medium text-sm mb-2">
-              ArtesiaFlow transformed how we create visual content. The quality
-              is outstanding!
+              Stop faking it in Photoshop and Green Screen, Put yourself in the
+              picture. Literally with one click
             </p>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-linear-to-br from-purple-400 to-pink-600"></div>
@@ -172,10 +172,10 @@ export default function LoginPage() {
         </div>
 
         {/* Image Grid - 3 Column Masonry Layout */}
-        <div className="absolute inset-0 grid grid-cols-3 gap-2 p-2">
+        <div className="absolute inset-0 grid grid-cols-3 gap-1 p-1">
           {/* Column 1 - Full height tall image */}
           <motion.div
-            className="relative overflow-hidden rounded-lg"
+            className="relative overflow-hidden rounded-sm"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
@@ -191,9 +191,9 @@ export default function LoginPage() {
           </motion.div>
 
           {/* Column 2 - Two stacked images */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <motion.div
-              className="relative overflow-hidden rounded-lg flex-3"
+              className="relative overflow-hidden rounded-sm flex-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
@@ -208,13 +208,13 @@ export default function LoginPage() {
               <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent"></div>
             </motion.div>
             <motion.div
-              className="relative overflow-hidden rounded-lg flex-2"
+              className="relative overflow-hidden rounded-sm flex-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
             >
               <Image
-                src="/stockimages/minioshine.png"
+                src="/stockimages/minioshine.jpeg"
                 alt="Ai generated girl standing near car"
                 width={1920}
                 height={1080}
@@ -225,15 +225,15 @@ export default function LoginPage() {
           </div>
 
           {/* Column 3 - Two stacked images */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <motion.div
-              className="relative overflow-hidden rounded-lg flex-2"
+              className="relative overflow-hidden rounded-sm flex-2"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.8 }}
             >
               <Image
-                src="/stockimages/divingwa.png"
+                src="/stockimages/divingwa.jpeg"
                 alt="Ai generated girl standing near car"
                 width={1920}
                 height={1080}
@@ -242,7 +242,7 @@ export default function LoginPage() {
               <div className="absolute inset-0 bg-linear-to-t from-black/20 to-transparent"></div>
             </motion.div>
             <motion.div
-              className="relative overflow-hidden rounded-lg flex-3"
+              className="relative overflow-hidden rounded-sm flex-3"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.8 }}
