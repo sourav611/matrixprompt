@@ -1,20 +1,17 @@
 "use client"
 import React, { useState } from 'react'
-import { GalleryImage, mockImages } from '../demo/gallery-data';
-import { motion } from 'framer-motion';
-import { Copy, Heart, ThumbsDown } from 'lucide-react';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-
-
+import { DemoGalleryImage, mockImages } from "../demo/gallery-data";
+import { motion } from "framer-motion";
+import { Copy, Heart, ThumbsDown } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export default function HomeGallery() {
   const router = useRouter();
-    const [hoveredImage, setHoveredImage] = useState<string | null>(null);
-    const [images, setImages] = useState<GalleryImage[]>(mockImages);
+  const [hoveredImage, setHoveredImage] = useState<string | null>(null);
+  const [images, setImages] = useState<DemoGalleryImage[]>(mockImages);
 
-
-    const handleImageClick = (imageId: string) => {
+  const handleImageClick = (imageId: string) => {
     router.push(`/image/${imageId}`);
   };
 
@@ -23,7 +20,11 @@ export default function HomeGallery() {
     setImages((prev) =>
       prev.map((img) =>
         img.id === imageId
-          ? { ...img, isLiked: !img.isLiked, likes: img.isLiked ? img.likes - 1 : img.likes + 1 }
+          ? {
+              ...img,
+              isLiked: !img.isLiked,
+              likes: img.isLiked ? img.likes - 1 : img.likes + 1,
+            }
           : img
       )
     );
@@ -36,14 +37,6 @@ export default function HomeGallery() {
   };
   return (
     <div className="p-4 pt-6">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-[7.8vw] tracking-tight leading-[9vw] font-semibold whitespace-nowrap">
-          Stop faking it in Photoshop
-        </h2>
-        <div className="text-xl ">
-          Put yourself in the picture. Literally with one click
-        </div>
-      </div>
       {/* masonry grid for gallery images */}
       <div className="p-6">
         <div className="masonry-grid">
