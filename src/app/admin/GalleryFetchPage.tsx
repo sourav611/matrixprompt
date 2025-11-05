@@ -1,66 +1,38 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { CopyIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { GalleryImage } from "@/types/image.types";
 
-type GalleryImage = {
-  id: string;
-  imageUrl: string;
-  prompt: string;
-  aiModel: string | null;
-  category: string | null;
-  createdAt: string;
-};
-
-export default function GalleryFetchPage() {
-  const [images, setImages] = useState<GalleryImage[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function GalleryFetchPage({
+  images,
+}: {
+  images: GalleryImage[];
+}) {
+  const router = useRouter();
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchImages() {
-      try {
-        const response = await fetch("/api/gallery");
-        const data = await response.json();
-        setImages(data.images);
-      } catch (error) {
-        console.error("Failed to fetch images:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
+  const handleImageClick = (imageId: string) => {
+    router.push(`/gallery/${imageId}`);
+  };
 
-    fetchImages();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center">
-        <div className="h-8 w-8 rounded-full border-2 animate-spin" />
-        <span>Loading.....</span>
-      </div>
-    );
-  }
+  if (images.length === 0)
+    <p className="text-center text-gray-500">
+      No images yet. Check back soon!
+    </p>;
 
   return (
     <div className="container mx-auto p-8">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-[7.8vw] tracking-tight leading-[9vw] font-semibold whitespace-nowrap">
-          Stop faking it in Photoshop
-        </h2>
-        <div className="text-xl ">
-          Put yourself in the picture. Literally with one click
-        </div>
-      </div>
-
       <div className="masonry-grid py-4">
         {images.map((image) => (
           <motion.div
             key={image.id}
             onMouseEnter={() => setHoveredImage(image.id)}
             onMouseLeave={() => setHoveredImage(null)}
+            onClick={() => handleImageClick(image.id)}
             className="masonry-item group relative cursor-pointer rounded-lg overflow-hidden "
           >
             <Image
@@ -101,12 +73,6 @@ export default function GalleryFetchPage() {
           </motion.div>
         ))}
       </div>
-
-      {images.length === 0 && (
-        <p className="text-center text-gray-500">
-          No images yet. Check back soon!
-        </p>
-      )}
     </div>
   );
 }
