@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "react-hot-toast";
+import { getUser } from "@/utils/supabase/server";
+import HomeHeader from "@/components/home/home-header";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,11 +21,12 @@ export const metadata: Metadata = {
   description: "AI generated images with prompts",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getUser();
   return (
     <html lang="en" suppressHydrationWarning>
       <body
@@ -35,6 +38,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <HomeHeader user={user} />
           {children}
         </ThemeProvider>
         <Toaster />
