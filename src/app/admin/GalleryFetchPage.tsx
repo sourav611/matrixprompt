@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { CopyIcon } from "lucide-react";
+import { motion, Variants } from "framer-motion";
+import { CopyIcon, Heart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { GalleryImage } from "@/types/image.types";
 
@@ -15,6 +15,15 @@ export default function GalleryFetchPage({
   const router = useRouter();
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
 
+  const heartVariants: Variants = {
+    hidden: { opacity: 0, y: -6, pointerEvents: "none" },
+    visible: {
+      opacity: 1,
+      y: 0,
+      pointerEvents: "auto",
+      transition: { delay: 0.08, duration: 0.18, ease: "easeOut" },
+    },
+  };
   const handleImageClick = (imageId: string) => {
     router.push(`/gallery/${imageId}`);
   };
@@ -49,6 +58,18 @@ export default function GalleryFetchPage({
                 transition={{ delay: 0.1 }}
                 className="absolute inset-0 "
               >
+                {/* like and dislike button  */}
+                <div className="absolute right-3 top-3 ">
+                  <motion.button
+                    variants={heartVariants}
+                    className="flex size-9 items-center justify-center rounded-lg backdrop-blur-md transition-all"
+                  >
+                    <Heart
+                      className="size-4 cursor-pointer"
+                      strokeWidth={1.5}
+                    />
+                  </motion.button>
+                </div>
                 {/* prompt card - bottom  */}
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="rounded-lg bg-card/95 p-3 backdrop-blur-md">

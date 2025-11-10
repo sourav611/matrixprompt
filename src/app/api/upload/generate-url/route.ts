@@ -12,7 +12,8 @@ export async function POST(request: Request){
       return NextResponse.json({error: "Unauthorized request"}, {status: 401})
     }
 
-    const {fileName, fileSize, contentType, prompt, aiModel, category}  = await request.json();
+    const { fileName, fileSize, prompt, aiModel, category } =
+      await request.json();
     //validate inputs 
     if(!fileName || !fileSize || !prompt){
       return NextResponse.json({error: "Missing required fields"}, {status: 400})
