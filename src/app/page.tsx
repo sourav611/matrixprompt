@@ -1,8 +1,8 @@
-import HomeGallery from "@/components/home/HomeGallery";
 import GalleryFetchPage from "./admin/GalleryFetchPage";
 import { db } from "@/db";
-import { galleryImages } from "@/db/schema";
+import { galleryImages, postLikes } from "@/db/schema";
 import { and, desc, eq, notLike } from "drizzle-orm";
+import { getUser } from "@/utils/supabase/server";
 
 export const revalidate = 3600;
 
@@ -20,8 +20,22 @@ async function getImages() {
   return images;
 }
 
+async function getLikedPostIds(userId: string | null) {
+  if (!userId) return new Set<string>();
+
+  const likedPosts = await db
+    .select({ postId: postLikes.postId })
+    .from(postLikes)
+    .where(eq(postLikes.userId, userId));
+
+  return new Set(likedPosts.map((row) => row.postId));
+}
+
 export default async function Home() {
   const showImages = await getImages();
+  const user = await getUser();
+
+  const likedPostIds = await getLikedPostIds(user?.id || null);
 
   return (
     <div>
@@ -35,10 +49,12 @@ export default async function Home() {
           </div>
         </div>
 
-        <GalleryFetchPage images={showImages} />
+        <GalleryFetchPage
+          images={showImages}
+          likedPostIds={likedPostIds}
+          currentUserId={user?.id || null}
+        />
       </div>
-
-      <HomeGallery />
     </div>
   );
 }

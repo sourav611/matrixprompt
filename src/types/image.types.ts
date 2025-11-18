@@ -13,3 +13,10 @@ export  interface CategoryCard {
   pinCount: number;
   thumbnails: string[];
 }
+
+export type ImageMetadata = {
+  id: string;
+  likeCount: number;
+  downloadCount: number;
+  promptCopyCount: number;
+};

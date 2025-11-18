@@ -1,20 +1,24 @@
-import { getImageById } from '@/lib/gallery-image';
-import { notFound } from 'next/navigation';
-import React from 'react'
-import ImageDetailClient from '../ImageDetailClient';
+import { getImageById, getImageStatsById } from "@/lib/gallery-image";
+import { notFound } from "next/navigation";
+import React from "react";
+import ImageDetailClient from "../ImageDetailClient";
 
 interface PageProps {
-  params: Promise<{id: string}>;
+  params: Promise<{ id: string }>;
 }
 
-export default async function DetailedImagePage({params}:PageProps) {
-  const {id} = await params;
-  const image = await getImageById(id)
+export default async function DetailedImagePage({ params }: PageProps) {
+  const { id } = await params;
 
-  if(!image) notFound();
+  const [imageData, imageStats] = await Promise.all([
+    getImageById(id),
+    getImageStatsById(id),
+  ]);
+
+  if (!imageData || !imageStats) notFound();
   return (
     <div>
-      <ImageDetailClient imagedata={image}/>
+      <ImageDetailClient imagedata={imageData} imageStats={imageStats} />
     </div>
-  )
+  );
 }
