@@ -1,24 +1,11 @@
 import GalleryFetchPage from "./admin/GalleryFetchPage";
 import { db } from "@/db";
-import { galleryImages, postLikes } from "@/db/schema";
-import { and, desc, eq, notLike } from "drizzle-orm";
+import { postLikes } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { getUser } from "@/utils/supabase/server";
+import { getImages } from "@/lib/gallery-image";
 
 export const revalidate = 3600;
-
-async function getImages() {
-  const images = await db
-    .select()
-    .from(galleryImages)
-    .where(
-      and(
-        eq(galleryImages.isPublic, true),
-        notLike(galleryImages.imageUrl, "pending-%")
-      )
-    )
-    .orderBy(desc(galleryImages.createdAt));
-  return images;
-}
 
 async function getLikedPostIds(userId: string | null) {
   if (!userId) return new Set<string>();

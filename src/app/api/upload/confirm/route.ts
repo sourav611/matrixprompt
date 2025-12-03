@@ -1,7 +1,6 @@
 import { db } from "@/db";
 import { galleryImages } from "@/db/schema";
 import { getUser } from "@/utils/supabase/server";
-import { getSupabaseStorageClient } from "@/utils/supabase/storage";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
@@ -12,19 +11,20 @@ export async function POST(request: Request){
     if(!user || user.email !== process.env.ADMIN_EMAIL){
       return NextResponse.json({error: "Unauthorized admin access"}, {status: 401})
     }
-    const {recordId, filePath} = await request.json();
-    if(!recordId || !filePath){
-      return NextResponse.json({error: "Missing required fileds"}, {status: 400})
+    
+    // We now expect the actual imageUrl from Cloudinary
+    const { recordId, imageUrl } = await request.json();
+    
+    if(!recordId || !imageUrl){
+      return NextResponse.json({error: "Missing required fields"}, {status: 400})
     }
-    //get public url for the uploaded file 
-    const supabase = getSupabaseStorageClient();
-    const {data} = supabase.storage.from('gallery-main').getPublicUrl(filePath);
 
     //update database record with actual image url 
-    await db.update(galleryImages).set({imageUrl: data.publicUrl}).where(eq(galleryImages.id, recordId))
+    await db.update(galleryImages).set({imageUrl: imageUrl}).where(eq(galleryImages.id, recordId))
+    
     return NextResponse.json({
       success: true,
-      imageUrl: data.publicUrl
+      imageUrl: imageUrl
     });
   } catch (error) {
     console.error("Confirm upload error:", error);

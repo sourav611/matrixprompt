@@ -1,7 +1,21 @@
 import { db } from "@/db"; // your drizzle instance
 import { galleryImages, postStats } from "@/db/schema";
 import { GalleryImage, ImageMetadata } from "@/types/image.types";
-import { eq } from "drizzle-orm";
+import { and, desc, eq, notLike } from "drizzle-orm";
+
+export async function getImages() {
+  const images = await db
+    .select()
+    .from(galleryImages)
+    .where(
+      and(
+        eq(galleryImages.isPublic, true),
+        notLike(galleryImages.imageUrl, "pending-%")
+      )
+    )
+    .orderBy(desc(galleryImages.createdAt));
+  return images;
+}
 
 export async function getImageById(id: string): Promise<GalleryImage | null> {
   const row = await db

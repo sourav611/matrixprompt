@@ -1,7 +1,7 @@
 import { db } from "@/db";
 import { galleryImages } from "@/db/schema";
 import { getUser } from "@/utils/supabase/server";
-import { getSupabaseStorageClient } from "@/utils/supabase/storage";
+import cloudinary from "@/lib/cloudinary";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request){
@@ -18,19 +18,18 @@ export async function POST(request: Request){
     if(!fileName || !fileSize || !prompt){
       return NextResponse.json({error: "Missing required fields"}, {status: 400})
     }
-    //check file size (not more than 5 mb)
-    if(fileSize > 5 * 1024 * 1024){
-      return NextResponse.json({error: "File size exceeds 5MB limit"}, {status: 400})
-    }
-    //generate unique file path 
-    const timestamp = Date.now();
-    const cleanFileName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const filePath = `${timestamp}-${cleanFileName}`;
 
-    //create pending record in db 
+    //check file size (not more than 10 mb for Cloudinary usually, keeping 5 for safety or increasing)
+    // Cloudinary handles large files well, but let's keep a check.
+    if(fileSize > 10 * 1024 * 1024){
+      return NextResponse.json({error: "File size exceeds 10MB limit"}, {status: 400})
+    }
+    
+    // Create pending record in db 
+    // We don't have the final URL yet, so we use a placeholder
     const [record] = await db.insert(galleryImages).values({
       uploadedBy: user.id,
-      imageUrl: `pending-${timestamp}`,
+      imageUrl: "pending-upload", 
       prompt,
       aiModel: aiModel || null,
       category: category || null,
@@ -38,18 +37,24 @@ export async function POST(request: Request){
       isPublic: true,
     }).returning();
 
-    //generate signed upload url 
-    const supabase = getSupabaseStorageClient();
-    const {data, error} = await supabase.storage.from('gallery-main').createSignedUploadUrl(filePath);
+    // Generate Cloudinary Signature
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    const folder = "slopdrift-gallery"; // Organized folder
 
-    if(error){
-      console.error("Signed URL generation error:", error);
-      return NextResponse.json({error: "Failed to generate upload URL"}, {status: 500})
-    }
+    const signature = cloudinary.utils.api_sign_request(
+      {
+        timestamp,
+        folder,
+      },
+      process.env.CLOUDINARY_API_SECRET!
+    );
 
     return NextResponse.json({
-      uploadUrl: data.signedUrl,
-      filePath,
+      timestamp,
+      folder,
+      signature,
+      apiKey: process.env.CLOUDINARY_API_KEY,
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
       recordId: record.id,
     })
   }catch(error){

@@ -24,7 +24,7 @@ export default function ImageUploadForm() {
 
 
     try {
-      // Step 1: Generate signed URL
+      // Step 1: Generate signed URL params for Cloudinary
       const generateResponse = await fetch("/api/upload/generate-url", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -43,27 +43,39 @@ export default function ImageUploadForm() {
         throw new Error(errorData.error || "Failed to generate upload URL");
       }
 
-      const { uploadUrl, filePath, recordId } = await generateResponse.json();
+      const data = await generateResponse.json(); // Assign response to data
+      const { timestamp, folder, signature, apiKey, cloudName, recordId } = data;
       
 
-      // Step 2: Upload directly to Supabase Storage
-      const uploadResponse = await fetch(uploadUrl, {
-        method: "PUT",
-        body: file,
-        headers: {
-          "Content-Type": file.type,
-        },
-      });
+      // Step 2: Upload directly to Cloudinary
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("api_key", apiKey);
+      formData.append("timestamp", timestamp.toString());
+      formData.append("signature", signature);
+      formData.append("folder", folder);
+
+      const uploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       if (!uploadResponse.ok) {
-        throw new Error("Failed to upload file to storage");
+        const err = await uploadResponse.json();
+        throw new Error(err.error?.message || "Failed to upload file to storage");
       }
+
+      const cloudinaryData = await uploadResponse.json();
+      const imageUrl = cloudinaryData.secure_url;
 
       // Step 3: Confirm upload and update database
       const confirmResponse = await fetch("/api/upload/confirm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ recordId, filePath }),
+        body: JSON.stringify({ recordId, imageUrl }),
       });
 
       if (!confirmResponse.ok) {

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Image from "next/image";
 import { motion, Variants } from "framer-motion";
 import { CopyIcon, Heart } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { GalleryImage } from "@/types/image.types";
 
 interface GalleryFetchPageProps {
@@ -18,7 +18,6 @@ export default function GalleryFetchPage({
   likedPostIds,
   currentUserId,
 }: GalleryFetchPageProps) {
-  const router = useRouter();
   const [hoveredImage, setHoveredImage] = useState<string | null>(null);
 
   const [localLikedPosts, setLocalLikedPosts] =
@@ -34,9 +33,6 @@ export default function GalleryFetchPage({
       pointerEvents: "auto",
       transition: { delay: 0.08, duration: 0.18, ease: "easeOut" },
     },
-  };
-  const handleImageClick = (imageId: string) => {
-    router.push(`/gallery/${imageId}`);
   };
 
   const handleLikeToggle = async (e: React.MouseEvent, postId: string) => {
@@ -111,11 +107,10 @@ export default function GalleryFetchPage({
           const isLiked = localLikedPosts.has(image.id);
           const isLoading = loadingPosts.has(image.id);
           return (
+            <Link key={image.id} href={`/gallery/${image.id}`} scroll={false}>
             <motion.div
-              key={image.id}
               onMouseEnter={() => setHoveredImage(image.id)}
               onMouseLeave={() => setHoveredImage(null)}
-              onClick={() => handleImageClick(image.id)}
               className="masonry-item group relative cursor-pointer rounded-lg overflow-hidden "
             >
               <Image
@@ -172,6 +167,7 @@ export default function GalleryFetchPage({
                 </motion.div>
               )}
             </motion.div>
+          </Link>
           );
         })}
       </div>
