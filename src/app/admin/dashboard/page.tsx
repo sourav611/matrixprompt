@@ -7,9 +7,5 @@ export default async function DashboardPage() {
   // Fetch data on the server
   const analytics = await getAdminAnalytics();
 
-  return (
-    <div>
-      <AdminDashboardPage analytics={analytics} />
-    </div>
-  );
+  return <AdminDashboardPage analytics={analytics} />;
 }

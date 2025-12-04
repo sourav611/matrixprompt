@@ -1,9 +1,9 @@
-import GalleryFetchPage from "./admin/GalleryFetchPage";
 import { db } from "@/db";
 import { postLikes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { getUser } from "@/utils/supabase/server";
 import { getImages } from "@/lib/gallery-image";
+import GalleryFetchPage from "../admin/GalleryFetchPage";
 
 export const revalidate = 3600;
 

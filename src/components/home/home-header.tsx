@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  Menu,
-  Search,
-  Sparkles,
-  X,
-  ImageIcon,
-  Bell,
-  Command,
-} from "lucide-react";
+import { Menu, Search, Sparkles, X, Bell } from "lucide-react";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -204,7 +196,7 @@ export default function HomeHeader({ user }: HomeHeaderProps) {
                   </Link>
                 ))}
               </nav>
-              
+
               <div className="space-y-4">
                 <div className="px-4">
                   <div className="relative flex items-center rounded-xl border border-border/50 bg-muted/30">
@@ -216,7 +208,7 @@ export default function HomeHeader({ user }: HomeHeaderProps) {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between px-4 pt-4 border-t border-border/40">
                   <span className="text-sm font-medium text-muted-foreground">
                     Appearance

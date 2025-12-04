@@ -8,10 +8,10 @@ import {
   Copy,
   Download,
   Heart,
-  Share2,
+
   Sparkles,
   Layers,
-  Maximize2,
+
   Check,
   Command,
   Code,

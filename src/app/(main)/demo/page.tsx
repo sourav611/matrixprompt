@@ -1,5 +1,5 @@
+import AdminDashboard from '@/app/admin/DemoPage'
 import React from 'react'
-import AdminDashboard from '../admin/DemoPage'
 
 export default function DemoPage() {
   return (

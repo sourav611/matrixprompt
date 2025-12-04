@@ -1,9 +1,9 @@
 import { getImageById, getImageStatsById, getImages } from "@/lib/gallery-image";
 import { notFound } from "next/navigation";
 import React from "react";
-import ImageDetailClient from "@/app/gallery/ImageDetailClient";
 import Modal from "@/components/Modal";
 import { GalleryImage } from "@/types/image.types";
+import ImageDetailClient from "@/app/(main)/gallery/ImageDetailClient";
 
 interface PageProps {
   params: Promise<{ id: string }>;
