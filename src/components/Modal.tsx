@@ -47,14 +47,14 @@ export default function Modal({ children }: { children: ReactNode }) {
           stiffness: 300,
           mass: 0.8,
         }}
-        className="relative z-10 flex h-full w-full max-w-[1400px] overflow-hidden bg-background shadow-2xl ring-1 ring-white/10 lg:h-full"
+        className="relative z-10 flex h-full w-full flex-col overflow-hidden bg-background shadow-2xl ring-1 ring-white/10 md:rounded-none lg:h-[90vh] lg:w-[90vw] lg:max-w-[1400px] lg:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={closeModal}
-          className="absolute right-6 top-6 z-60 flex h-8 w-8 items-center justify-center rounded-full bg-black/20 text-foreground backdrop-blur-md transition-all hover:bg-black/40 hover:scale-110 dark:bg-white/10 dark:hover:bg-white/20"
+          className="absolute right-4 top-4 z-50 flex h-9 w-9 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md transition-all hover:bg-black/70 hover:scale-105 lg:right-6 lg:top-6"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </button>
         {children}
       </motion.div>

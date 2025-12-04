@@ -16,6 +16,7 @@ import {
   Command,
   Code,
   FileJson,
+  Tag,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -276,6 +277,26 @@ export default function ImageDetailClient({
                 </p>
               </div>
             </div>
+
+            {/* Tags Section */}
+            {imagedata.tags && imagedata.tags.length > 0 && (
+              <div className="mb-8">
+                <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <Tag className="h-3 w-3" />
+                  <span>Tags</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {imagedata.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="inline-flex items-center rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mb-8 h-px w-full bg-border" />
 
