@@ -1,8 +1,10 @@
 import { db } from "@/db";
-import { galleryImages } from "@/db/schema";
+import { galleryImages, imageTags } from "@/db/schema";
 import { getUser } from "@/utils/supabase/server";
 import cloudinary from "@/lib/cloudinary";
 import { NextResponse } from "next/server";
+import { getOrCreateTag } from "@/lib/tags";
+import { validateTagName } from "@/lib/tags-validation";
 
 export async function POST(request: Request){
   try{
@@ -12,7 +14,7 @@ export async function POST(request: Request){
       return NextResponse.json({error: "Unauthorized request"}, {status: 401})
     }
 
-    const { fileName, fileSize, prompt, aiModel, category } =
+    const { fileName, fileSize, prompt, aiModel, category, tags: tagNames } =
       await request.json();
     //validate inputs 
     if(!fileName || !fileSize || !prompt){
@@ -25,17 +27,40 @@ export async function POST(request: Request){
       return NextResponse.json({error: "File size exceeds 10MB limit"}, {status: 400})
     }
     
-    // Create pending record in db 
-    // We don't have the final URL yet, so we use a placeholder
-    const [record] = await db.insert(galleryImages).values({
-      uploadedBy: user.id,
-      imageUrl: "pending-upload", 
-      prompt,
-      aiModel: aiModel || null,
-      category: category || null,
-      fileSize,
-      isPublic: true,
-    }).returning();
+    // Create pending record in db with transaction
+    const record = await db.transaction(async (tx) => {
+      // We don't have the final URL yet, so we use a placeholder
+      const [newRecord] = await tx.insert(galleryImages).values({
+        uploadedBy: user.id,
+        imageUrl: "pending-upload", 
+        prompt,
+        aiModel: aiModel || null,
+        category: category || null,
+        fileSize,
+        isPublic: true,
+      }).returning();
+
+      // Handle Tags
+      if (tagNames && Array.isArray(tagNames)) {
+        for (const tagName of tagNames) {
+          // Validate tag name using the utility
+          const validationError = validateTagName(tagName);
+          if (validationError) {
+            // Throwing an error here triggers the transaction rollback
+            throw new Error(`Invalid tag '${tagName}': ${validationError}`);
+          }
+
+          const tag = await getOrCreateTag(tagName, tx);
+          // Create junction
+          await tx.insert(imageTags).values({
+            imageId: newRecord.id,
+            tagId: tag.id,
+          });
+        }
+      }
+      
+      return newRecord;
+    });
 
     // Generate Cloudinary Signature
     const timestamp = Math.round(new Date().getTime() / 1000);

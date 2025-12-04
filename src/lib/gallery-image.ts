@@ -1,40 +1,54 @@
 import { db } from "@/db"; // your drizzle instance
-import { galleryImages, postStats } from "@/db/schema";
+import { galleryImages, postStats, tags, imageTags } from "@/db/schema";
 import { GalleryImage, ImageMetadata } from "@/types/image.types";
-import { and, desc, eq, notLike } from "drizzle-orm";
+import { and, desc, eq, notLike, sql } from "drizzle-orm";
 
 export async function getImages() {
   const images = await db
-    .select()
+    .select({
+      id: galleryImages.id,
+      imageUrl: galleryImages.imageUrl,
+      prompt: galleryImages.prompt,
+      aiModel: galleryImages.aiModel,
+      category: galleryImages.category,
+      createdAt: galleryImages.createdAt,
+      tags: sql<string[]>`coalesce(array_agg(${tags.name}) filter (where ${tags.name} is not null), '{}')`,
+    })
     .from(galleryImages)
+    .leftJoin(imageTags, eq(galleryImages.id, imageTags.imageId))
+    .leftJoin(tags, eq(imageTags.tagId, tags.id))
     .where(
       and(
         eq(galleryImages.isPublic, true),
         notLike(galleryImages.imageUrl, "pending-%")
       )
     )
+    .groupBy(galleryImages.id)
     .orderBy(desc(galleryImages.createdAt));
   return images;
 }
 
 export async function getImageById(id: string): Promise<GalleryImage | null> {
   const row = await db
-    .select()
+    .select({
+      id: galleryImages.id,
+      imageUrl: galleryImages.imageUrl,
+      prompt: galleryImages.prompt,
+      aiModel: galleryImages.aiModel,
+      category: galleryImages.category,
+      createdAt: galleryImages.createdAt,
+      tags: sql<string[]>`coalesce(array_agg(${tags.name}) filter (where ${tags.name} is not null), '{}')`,
+    })
     .from(galleryImages)
+    .leftJoin(imageTags, eq(galleryImages.id, imageTags.imageId))
+    .leftJoin(tags, eq(imageTags.tagId, tags.id))
     .where(eq(galleryImages.id, id))
+    .groupBy(galleryImages.id)
     .limit(1);
 
   if (!row || row.length === 0) return null;
 
-  const r = row[0];
-  return {
-    id: r.id,
-    imageUrl: r.imageUrl,
-    prompt: r.prompt,
-    aiModel: r.aiModel,
-    category: r.category,
-    createdAt: r.createdAt,
-  };
+  return row[0];
 }
 
 export async function getImageStatsById(

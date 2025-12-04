@@ -1,5 +1,6 @@
 import {
   boolean,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -23,6 +24,17 @@ export const users = pgTable("users", {
   role: userRoleEnum("role").default("user").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const tags = pgTable(
+  "tags",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    name: text("name").notNull().unique(),
+    slug: text("slug").notNull().unique(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("slug_idx").on(table.slug)]
+);
 
 export const galleryImages = pgTable("gallery_images", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -61,3 +73,21 @@ export const postStats = pgTable("post_stats", {
   promptCopyCount: integer("prompt_copy_count").default(0).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+export const imageTags = pgTable(
+  "image_tags",
+  {
+    imageId: uuid("image_id")
+      .references(() => galleryImages.id, { onDelete: "cascade" })
+      .notNull(),
+    tagId: uuid("tag_id")
+      .references(() => tags.id, { onDelete: "cascade" })
+      .notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.imageId, table.tagId] }),
+    index("image_tags_image_id_idx").on(table.imageId),
+    index("image_tags_tag_id_idx").on(table.tagId),
+  ]
+);

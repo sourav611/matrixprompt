@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Heart,
   Download,
@@ -32,30 +32,11 @@ export default function GalleryFetchPage({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
-  const [hoveredImage, setHoveredImage] = useState<string | null>(null);
-  const [columnCount, setColumnCount] = useState(1);
-  const [isMounted, setIsMounted] = useState(false);
 
   // Like System State
   const [localLikedPosts, setLocalLikedPosts] =
     useState<Set<string>>(likedPostIds);
   const [loadingPosts, setLoadingPosts] = useState<Set<string>>(new Set());
-
-  // Handle Hydration and Resize
-  useEffect(() => {
-    setIsMounted(true);
-    const updateColumns = () => {
-      const width = window.innerWidth;
-      if (width >= 1536) setColumnCount(4); // 2xl
-      else if (width >= 1024) setColumnCount(3); // lg
-      else if (width >= 640) setColumnCount(2); // sm
-      else setColumnCount(1); // base
-    };
-
-    updateColumns();
-    window.addEventListener("resize", updateColumns);
-    return () => window.removeEventListener("resize", updateColumns);
-  }, []);
 
   // Extract Unique Categories
   const categories = useMemo(() => {
@@ -94,18 +75,6 @@ export default function GalleryFetchPage({
 
     return result;
   }, [images, selectedCategory, searchQuery, sortBy]);
-
-  // Distribute images into columns for Masonry layout
-  const columns = useMemo(() => {
-    const cols = Array.from(
-      { length: columnCount },
-      () => [] as GalleryImage[]
-    );
-    filteredImages.forEach((img, i) => {
-      cols[i % columnCount].push(img);
-    });
-    return cols;
-  }, [filteredImages, columnCount]);
 
   const handleLikeToggle = async (e: React.MouseEvent, postId: string) => {
     e.preventDefault();
@@ -169,10 +138,6 @@ export default function GalleryFetchPage({
     setSearchQuery("");
     setSelectedCategory("All");
   };
-
-  if (!isMounted) {
-    return null; // Or a loading skeleton
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -286,90 +251,85 @@ export default function GalleryFetchPage({
             </button>
           </div>
         ) : (
-          <div className="flex gap-4 items-start">
-            {columns.map((colImages, colIndex) => (
-              <div key={colIndex} className="flex flex-col gap-4 flex-1">
-                {colImages.map((image) => {
-                  const isLiked = localLikedPosts.has(image.id);
+          <div className="columns-1 sm:columns-2 lg:columns-3 2xl:columns-4 gap-4">
+            {filteredImages.map((image) => {
+              const isLiked = localLikedPosts.has(image.id);
 
-                  return (
-                    <motion.div
-                      key={image.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true, margin: "50px" }}
-                      transition={{ duration: 0.4 }}
-                      className="group relative cursor-pointer w-full"
-                      onMouseEnter={() => setHoveredImage(image.id)}
-                      onMouseLeave={() => setHoveredImage(null)}
+              return (
+                <div key={image.id} className="break-inside-avoid mb-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "50px" }}
+                    transition={{ duration: 0.4 }}
+                    className="group relative cursor-pointer w-full"
+                  >
+                    <Link
+                      href={`/gallery/${image.id}`}
+                      scroll={false}
+                      className="block w-full"
                     >
-                      <Link
-                        href={`/gallery/${image.id}`}
-                        scroll={false}
-                        className="block w-full"
-                      >
-                        <div className="relative w-full overflow-hidden rounded-2xl bg-muted transition-all duration-500 hover:shadow-2xl dark:bg-muted/10 dark:shadow-black/50">
-                          <Image
-                            src={image.imageUrl}
-                            alt={image.prompt}
-                            width={500}
-                            height={500}
-                            className="h-auto w-full object-cover transition-transform duration-700 will-change-transform group-hover:scale-105"
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                          />
+                      <div className="relative w-full overflow-hidden rounded-2xl bg-muted transition-all duration-500 hover:shadow-2xl dark:bg-muted/10 dark:shadow-black/50">
+                        <Image
+                          src={image.imageUrl}
+                          alt={image.prompt}
+                          width={500}
+                          height={500}
+                          className="h-auto w-full object-cover transition-transform duration-700 will-change-transform group-hover:scale-105"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
 
-                          {/* Overlay Gradient - Only shows on hover */}
-                          <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                        {/* Overlay Gradient - Only shows on hover */}
+                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
-                          {/* Top Badges */}
-                          <div className="absolute left-3 top-3 flex gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100">
-                            <span className="rounded-md bg-black/40 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-md border border-white/10">
-                              {image.aiModel || "AI"}
+                        {/* Top Badges */}
+                        <div className="absolute left-3 top-3 flex gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100">
+                          <span className="rounded-md bg-black/40 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-md border border-white/10">
+                            {image.aiModel || "AI"}
+                          </span>
+                        </div>
+
+                        {/* Action Buttons - Slide in from right */}
+                        <div className="absolute right-3 top-3 flex flex-col gap-2 translate-x-4 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
+                          <button
+                            onClick={(e) => handleLikeToggle(e, image.id)}
+                            className={`flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md transition-all ${
+                              isLiked
+                                ? "bg-red-500 text-white shadow-lg shadow-red-500/20"
+                                : "bg-black/40 text-white hover:bg-white hover:text-black"
+                            }`}
+                          >
+                            <Heart
+                              className={`h-3.5 w-3.5 ${
+                                isLiked ? "fill-current" : ""
+                              }`}
+                            />
+                          </button>
+                          <button
+                            onClick={(e) => handleDownload(e, image.imageUrl)}
+                            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-white hover:text-black"
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+
+                        {/* Bottom Info - Slide up */}
+                        <div className="absolute bottom-0 left-0 right-0 translate-y-4 opacity-0 p-4 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                          <p className="line-clamp-2 text-xs font-medium leading-relaxed text-white/90">
+                            {image.prompt}
+                          </p>
+                          <div className="mt-2 flex items-center justify-between">
+                            <span className="text-[10px] text-white/60 uppercase tracking-wide">
+                              {image.category}
                             </span>
                           </div>
-
-                          {/* Action Buttons - Slide in from right */}
-                          <div className="absolute right-3 top-3 flex flex-col gap-2 translate-x-4 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-                            <button
-                              onClick={(e) => handleLikeToggle(e, image.id)}
-                              className={`flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md transition-all ${
-                                isLiked
-                                  ? "bg-red-500 text-white shadow-lg shadow-red-500/20"
-                                  : "bg-black/40 text-white hover:bg-white hover:text-black"
-                              }`}
-                            >
-                              <Heart
-                                className={`h-3.5 w-3.5 ${
-                                  isLiked ? "fill-current" : ""
-                                }`}
-                              />
-                            </button>
-                            <button
-                              onClick={(e) => handleDownload(e, image.imageUrl)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-white hover:text-black"
-                            >
-                              <Download className="h-3.5 w-3.5" />
-                            </button>
-                          </div>
-
-                          {/* Bottom Info - Slide up */}
-                          <div className="absolute bottom-0 left-0 right-0 translate-y-4 opacity-0 p-4 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                            <p className="line-clamp-2 text-xs font-medium leading-relaxed text-white/90">
-                              {image.prompt}
-                            </p>
-                            <div className="mt-2 flex items-center justify-between">
-                              <span className="text-[10px] text-white/60 uppercase tracking-wide">
-                                {image.category}
-                              </span>
-                            </div>
-                          </div>
                         </div>
-                      </Link>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            ))}
+                      </div>
+                    </Link>
+                  </motion.div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

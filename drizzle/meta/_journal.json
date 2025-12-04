@@ -43,6 +43,20 @@
       "when": 1762664041045,
       "tag": "0005_amused_darwin",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1764832176683,
+      "tag": "0006_adorable_abomination",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1764832457675,
+      "tag": "0007_bright_pride",
+      "breakpoints": true
     }
   ]
 }

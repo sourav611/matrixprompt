@@ -5,6 +5,7 @@ export type GalleryImage = {
   aiModel: string | null;
   category: string | null;
   createdAt: Date;
+  tags?: string[];
 };
 
 export  interface CategoryCard {
