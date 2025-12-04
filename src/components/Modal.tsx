@@ -3,13 +3,20 @@
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useRef, useEffect, ReactNode } from "react";
+import { X } from "lucide-react";
 
 export default function Modal({ children }: { children: ReactNode }) {
   const router = useRouter();
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    dialogRef.current?.showModal();
+    if (!dialogRef.current?.open) {
+      dialogRef.current?.showModal();
+    }
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
   }, []);
 
   const closeModal = () => {
@@ -20,25 +27,34 @@ export default function Modal({ children }: { children: ReactNode }) {
     <dialog
       ref={dialogRef}
       onClose={closeModal}
-      className="fixed inset-0 z-50  w-screen  bg-zinc-900/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 m-0 flex h-dvh w-screen max-w-none max-h-none items-center justify-center border-none bg-transparent p-0 outline-none backdrop:bg-black/80 backdrop:backdrop-blur-sm"
     >
+      {/* Custom Backdrop for animation control if needed, but native backdrop is used above. 
+          We'll add a click layer here just in case native backdrop click is inconsistent. */}
       <div
-        className="absolute inset-0"
-        onClick={() => router.back()}
+        className="fixed inset-0 z-0 bg-black/80 backdrop-blur-md"
+        onClick={closeModal}
         aria-hidden="true"
       />
+
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        transition={{ duration: 0.2 }}
-        className="relative mx-auto h-[85vh] w-[calc(85vw-60px)]"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{
+          type: "spring",
+          damping: 30,
+          stiffness: 300,
+          mass: 0.8,
+        }}
+        className="relative z-10 flex h-full w-full max-w-[1400px] overflow-hidden bg-background shadow-2xl ring-1 ring-white/10 lg:h-full"
+        onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={closeModal}
-          className="absolute -top-10 right-0 z-50 rounded-full bg-white/20 p-2 text-white"
+          className="absolute right-6 top-6 z-60 flex h-8 w-8 items-center justify-center rounded-full bg-black/20 text-foreground backdrop-blur-md transition-all hover:bg-black/40 hover:scale-110 dark:bg-white/10 dark:hover:bg-white/20"
         >
-          X
+          <X className="h-4 w-4" />
         </button>
         {children}
       </motion.div>

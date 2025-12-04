@@ -190,89 +190,27 @@ body {
   background-color: rgb(var(--color-background));
   color: rgb(var(--color-foreground));
 }
-/* Masonry Grid Layout */
-.masonry-grid {
-  column-count: 1;
-  column-gap: 1rem;
-  width: 100%;
+/* Custom Thin Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-/* Tablet and up - 2 columns */
-@media (min-width: 640px) {
-  .masonry-grid {
-    column-count: 2;
-    column-gap: 1rem;
-  }
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-/* Desktop - 3 columns */
-@media (min-width: 1024px) {
-  .masonry-grid {
-    column-count: 3;
-    column-gap: 1rem;
-  }
+::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 3px;
 }
 
-/* Large Desktop - 4 columns */
-@media (min-width: 1536px) {
-  .masonry-grid {
-    column-count: 4;
-    column-gap: 1rem;
-  }
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--muted-foreground);
 }
 
-/* Masonry Items */
-.masonry-item {
-  break-inside: avoid;
-  page-break-inside: avoid;
-  margin-bottom: 1rem;
-  display: inline-block;
-  width: 100%;
-  position: relative;
-  aspect-ratio: 3/4;
-}
-
-/* Tablet spacing */
-@media (min-width: 640px) {
-  .masonry-item {
-    margin-bottom: 1rem;
-  }
-}
-
-/* Desktop spacing */
-@media (min-width: 1024px) {
-  .masonry-item {
-    margin-bottom: 1rem;
-  }
-}
-
-/* Varied aspect ratios for natural masonry look */
-.masonry-item:nth-child(3n + 1) {
-  aspect-ratio: 3/4;
-}
-
-.masonry-item:nth-child(3n + 2) {
-  aspect-ratio: 4/5;
-}
-
-.masonry-item:nth-child(3n + 3) {
-  aspect-ratio: 2/3;
-}
-
-.masonry-item:nth-child(5n) {
-  aspect-ratio: 1/1;
-}
-
-.masonry-item:nth-child(7n) {
-  aspect-ratio: 4/3;
-}
-
-/* Smooth transitions */
-.masonry-item {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.masonry-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+/* Firefox fallback */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
 }

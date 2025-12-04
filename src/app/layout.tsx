@@ -23,8 +23,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  modal,
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   const user = await getUser();
   return (
@@ -40,6 +42,7 @@ export default async function RootLayout({
         >
           <HomeHeader user={user} />
           {children}
+          {modal}
         </ThemeProvider>
         <Toaster />
       </body>
