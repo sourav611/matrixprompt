@@ -1,13 +1,7 @@
 "use client";
 
 import { ModeToggle } from "@/components/theme/mode-toggle";
-import {
-  LayoutDashboard,
-  LogOutIcon,
-  Settings,
-
-  ImagePlus,
-} from "lucide-react";
+import { LayoutDashboard, LogOutIcon, Settings, ImagePlus } from "lucide-react";
 import React, { useState } from "react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
