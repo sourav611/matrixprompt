@@ -365,16 +365,40 @@ export default function AdminDashboardPage({ analytics }: AdminDashboardProps) {
 
             {/* Basic Inputs */}
             <div className="mt-6 space-y-4 flex-1">
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="text-xs font-medium text-foreground flex items-center gap-1.5">
                   <Layers size={14} className="text-blue-500" /> Model Version
                 </label>
+                
+                {/* Recent Models Chips */}
+                {analytics.aiModels && analytics.aiModels.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {analytics.aiModels.slice(0, 5).map((model) => (
+                      <button
+                        key={model.name}
+                        onClick={() => setAiModel(model.name)}
+                        type="button"
+                        className={`
+                          text-[10px] px-2.5 py-1 rounded-full transition-all border
+                          ${
+                            aiModel === model.name
+                              ? "bg-blue-100 text-blue-700 border-blue-300 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700 font-medium shadow-sm"
+                              : "bg-muted/50 text-muted-foreground border-transparent hover:bg-muted hover:text-foreground hover:border-border"
+                          }
+                        `}
+                      >
+                        {model.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <input
                   type="text"
                   value={aiModel}
                   onChange={(e) => setAiModel(e.target.value)}
                   placeholder="e.g. DALL-E 3"
-                  className="w-full p-3 text-sm bg-muted/30 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none"
+                  className="w-full p-3 text-sm bg-muted/30 border border-border rounded-lg focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                 />
               </div>
 

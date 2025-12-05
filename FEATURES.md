@@ -81,3 +81,47 @@ Refactored the data model to replace the rigid `category` column with the flexib
     *   **Image Details:** Removed the dedicated "Category" display box.
     *   **Gallery Feed:** Updated filtering logic to search against tags instead of the removed category field.
     *   **Management Table:** Removed Category column, replaced with a Tags preview column.
+
+### 📊 Admin Enhancements & Smart Inputs
+*   **Analytics-Driven Input:**
+    *   **Backend:** Updated `getAdminAnalytics` to aggregate top AI models and their usage counts from the database.
+    *   **Frontend:** Enhanced the Admin Dashboard "Model Version" input. It now displays "Recent Models" chips (fetched from analytics) for one-tap selection while retaining manual text entry for new models.
+
+## 3. Design & UX Overhaul (High-End Polish)
+Implemented a comprehensive "Pexels-inspired" visual redesign to elevate the application to a premium standard.
+
+### 🖼️ Gallery Page (`GalleryFetchPage.tsx`)
+*   **Hero Section:** Implemented a dramatic hero area with a large background image and a **radial gradient overlay** for a spotlight effect.
+*   **Jumbo Search:** Replaced standard inputs with a large, pill-shaped "jumbo" search bar (`h-14`) featuring a backdrop blur and trending topic suggestions.
+*   **Advanced Tag Filter:** 
+    *   Replaced the simple scrollbar with a **smart wrap layout**.
+    *   **Logic:** Shows top 15 tags by popularity (image count) initially.
+    *   **Interaction:** Added an "Expand/Collapse" toggle to view all tags without clutter.
+    *   **Visuals:** Tags act as data-rich chips displaying the image count (e.g., "Nature 5").
+*   **Refined Masonry Grid:**
+    *   Optimized for large screens (`xl:columns-4`).
+    *   **Card Design:** Removed borders for a clean look; added `ring-1` for definition.
+    *   **Hover Effects:** "Pexels-style" dark gradient overlay revealing User Info, Download, and Like buttons on hover.
+
+### 🔍 Immersive Image Modal (`ImageDetailClient.tsx`)
+*   **Lightbox Aesthetic:** Deepened the background atmosphere with a darker, blurrier stage (`opacity-60 blur-[150px]`).
+*   **Split Layout:**
+    *   **Left:** Immersive image stage with zero distractions.
+    *   **Right:** Clean metadata sidebar with a **sticky header** containing primary actions (Like, Share, Download).
+*   **Refined UI:** 
+    *   **Prompt Box:** Contained with a custom scrollbar (`max-h-[200px]`).
+    *   **Typography:** Professional `uppercase tracking-wide` labels.
+    *   **Masonry Suggestions:** "More Like This" section now uses a true masonry layout (`columns-2`) instead of a rigid grid.
+
+### 🧭 Adaptive Navigation (`home-header.tsx`)
+*   **Glassmorphism:** Implemented a header that transitions from **Transparent** (over the hero image) to **Solid/Blurred** (on scroll).
+*   **Smart Visibility:** The header search bar hides automatically on the home page (to avoid redundancy with the hero search) but appears smoothly upon scrolling or navigating elsewhere.
+*   **Upload CTA:** Added a dedicated "Upload" button for quick access to the admin dashboard.
+*   **Animation:** Applied smooth "Apple-like" easing (`cubic-bezier`) to all transitions.
+
+### 👤 Premium User Profile (`user-profile.tsx`)
+*   **Floating Panel:** Redesigned the dropdown as a detached, floating glass panel with `backdrop-blur-xl`.
+*   **Visual Polish:**
+    *   **Trigger:** Circular avatar with a subtle interaction ring.
+    *   **Header:** Dedicated user info section with a "Pro/Upgrade" banner.
+    *   **Actions:** Spacious touch targets with clear icons and consistent hover states.

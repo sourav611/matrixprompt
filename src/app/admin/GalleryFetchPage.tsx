@@ -2,16 +2,16 @@
 
 import React, { useState, useMemo } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
   Download,
   Search,
   X,
-  SlidersHorizontal,
-  ArrowDownUp,
-  Sparkles,
-  Tag,
+  TrendingUp,
+  ChevronDown,
+  ChevronUp,
+  Filter,
 } from "lucide-react";
 import Link from "next/link";
 import { GalleryImage } from "@/types/image.types";
@@ -29,30 +29,45 @@ export default function GalleryFetchPage({
   likedPostIds,
   currentUserId,
 }: GalleryFetchPageProps) {
-  // State for interactivity
+  // State
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+  const [isTagsExpanded, setIsTagsExpanded] = useState(false);
 
-  // Like System State
+  // Like System
   const [localLikedPosts, setLocalLikedPosts] =
     useState<Set<string>>(likedPostIds);
   const [loadingPosts, setLoadingPosts] = useState<Set<string>>(new Set());
 
-  // Extract all unique tags
-  const allUniqueTags = useMemo(() => {
-    const tags = new Set<string>();
+  // Extract Tags with Counts
+  const allTagsWithCounts = useMemo(() => {
+    const tagCounts = new Map<string, number>();
+    
     images.forEach((img) => {
-      img.tags?.forEach((tag) => tags.add(tag));
+      img.tags?.forEach((tag) => {
+        tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1);
+      });
     });
-    return Array.from(tags).sort((a, b) => a.localeCompare(b));
+
+    // Sort by count (descending), then alphabetical
+    return Array.from(tagCounts.entries())
+      .sort((a, b) => {
+        if (b[1] !== a[1]) return b[1] - a[1];
+        return a[0].localeCompare(b[0]);
+      })
+      .map(([tag, count]) => ({ tag, count }));
   }, [images]);
 
-  // Filter and Sort Logic
+  const visibleTags = useMemo(() => {
+    if (isTagsExpanded) return allTagsWithCounts;
+    return allTagsWithCounts.slice(0, 15); // Show top 15 initially
+  }, [allTagsWithCounts, isTagsExpanded]);
+
+  // Filter Logic
   const filteredImages = useMemo(() => {
     let result = [...images];
 
-    // 1. Filter by Search Query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
@@ -63,14 +78,12 @@ export default function GalleryFetchPage({
       );
     }
 
-    // 2. Filter by Selected Tags
     if (selectedTags.size > 0) {
       result = result.filter((img) =>
         img.tags?.some((tag) => selectedTags.has(tag))
       );
     }
 
-    // 3. Sort
     result.sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
@@ -80,6 +93,7 @@ export default function GalleryFetchPage({
     return result;
   }, [images, searchQuery, sortBy, selectedTags]);
 
+  // Handlers
   const handleLikeToggle = async (e: React.MouseEvent, postId: string) => {
     e.preventDefault();
     e.stopPropagation();
@@ -94,35 +108,25 @@ export default function GalleryFetchPage({
 
     setLocalLikedPosts((prev) => {
       const newSet = new Set(prev);
-      if (isCurrentlyLiked) {
-        newSet.delete(postId);
-      } else {
-        newSet.add(postId);
-      }
+      if (isCurrentlyLiked) newSet.delete(postId);
+      else newSet.add(postId);
       return newSet;
     });
 
     setLoadingPosts((prev) => new Set(prev).add(postId));
 
     try {
-      const response = await fetch(`/api/posts/${postId}/like`, {
+      await fetch(`/api/posts/${postId}/like`, {
         method: isCurrentlyLiked ? "DELETE" : "POST",
       });
-      if (!response.ok) {
-        throw new Error("Failed to toggle like");
-      }
     } catch (error) {
       console.error("Error toggling like:", error);
       setLocalLikedPosts((prev) => {
         const newSet = new Set(prev);
-        if (isCurrentlyLiked) {
-          newSet.add(postId);
-        } else {
-          newSet.delete(postId);
-        }
+        if (isCurrentlyLiked) newSet.add(postId);
+        else newSet.delete(postId);
         return newSet;
       });
-      alert("Failed to update like , Please try again");
     } finally {
       setLoadingPosts((prev) => {
         const newSet = new Set(prev);
@@ -138,236 +142,258 @@ export default function GalleryFetchPage({
     window.open(imageUrl, "_blank");
   };
 
-  const handleTagClick = (tag: string) => {
+  const toggleTag = (tag: string) => {
     setSelectedTags((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(tag)) {
-        newSet.delete(tag);
-      } else {
-        newSet.add(tag);
-      }
+      if (newSet.has(tag)) newSet.delete(tag);
+      else newSet.add(tag);
       return newSet;
     });
   };
 
-  const clearFilters = () => {
-    setSearchQuery("");
-    setSelectedTags(new Set());
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sleek Floating Toolbar */}
-      <div className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-2xl supports-backdrop-filter:bg-background/60">
-        <div className="container mx-auto flex flex-col gap-4 px-4 py-3 md:py-4">
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            {/* Search Input */}
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground opacity-50" />
-              <input
-                type="text"
-                placeholder="Filter by prompt, model, or tag..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="h-10 w-full rounded-xl border border-border/50 bg-muted/30 pl-9 pr-8 text-sm shadow-sm transition-all placeholder:text-muted-foreground/50 hover:bg-muted/50 focus:border-primary/30 focus:bg-background focus:outline-none focus:ring-2 focus:ring-primary/10"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </div>
+    <div className="min-h-screen bg-background text-foreground font-sans">
+      {/* 1. Hero Section */}
+      <div className="relative h-[550px] w-full flex items-center justify-center mb-8 overflow-hidden">
+        {/* Hero Background */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/stockimages/divingwa.jpeg" // Fallback or dynamic
+            alt="Hero Background"
+            fill
+            className="object-cover opacity-100" // Full opacity, handled by overlay
+            priority
+          />
+          {/* Radial Gradient Overlay for Spotlight Effect */}
+          <div 
+            className="absolute inset-0" 
+            style={{ background: 'radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%)' }} 
+          />
+        </div>
 
-            {/* Right Side Controls */}
-            <div className="flex items-center gap-3 self-end md:self-auto">
-              {/* Sort Dropdown */}
-              <div className="relative">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as SortOption)}
-                  className="appearance-none rounded-lg bg-muted/30 py-2 pl-3 pr-8 text-xs font-medium text-foreground transition-colors hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/10 cursor-pointer"
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                </select>
-                <ArrowDownUp className="pointer-events-none absolute right-2.5 top-1/2 h-3 w-3 -translate-y-1/2 text-muted-foreground" />
-              </div>
-            </div>
+        {/* Hero Content */}
+        <div className="relative z-10 w-full max-w-4xl px-6 text-center space-y-8 mt-12">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white tracking-tight drop-shadow-xl text-balance leading-tight">
+            The best free AI generated stock photos shared by creators.
+          </h1>
+          
+          {/* Big Search Bar */}
+          <div className="relative max-w-2xl mx-auto">
+             <div className="relative flex items-center w-full h-14 bg-white/95 backdrop-blur-sm rounded-full shadow-2xl overflow-hidden focus-within:ring-4 focus-within:ring-blue-500/30 transition-all duration-300 transform hover:scale-[1.01]">
+               <div className="pl-5 text-gray-400">
+                 <Search size={22} />
+               </div>
+               <input
+                 type="text"
+                 value={searchQuery}
+                 onChange={(e) => setSearchQuery(e.target.value)}
+                 placeholder="Search for free photos..."
+                 className="w-full h-full px-4 text-gray-800 placeholder:text-gray-400 bg-transparent border-none outline-none text-lg font-medium"
+               />
+               {searchQuery && (
+                 <button
+                   onClick={() => setSearchQuery("")}
+                   className="pr-5 text-gray-400 hover:text-gray-600 transition-colors"
+                 >
+                   <X size={20} />
+                 </button>
+               )}
+             </div>
+             <div className="mt-4 flex flex-wrap items-center justify-center gap-2 text-white/90 text-sm font-medium drop-shadow-md">
+                <span className="opacity-70">Trending:</span>
+                <span className="hover:text-white cursor-pointer hover:underline transition-all">nature,</span>
+                <span className="hover:text-white cursor-pointer hover:underline transition-all">wallpaper,</span>
+                <span className="hover:text-white cursor-pointer hover:underline transition-all">3d render,</span>
+                <span className="hover:text-white cursor-pointer hover:underline transition-all">portrait</span>
+             </div>
           </div>
-          {/* Tags Display */}
-          {allUniqueTags.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-wrap items-center gap-2 pt-1"
-            >
-              <div className="flex items-center gap-1.5 mr-2 text-xs font-medium text-muted-foreground/60 uppercase tracking-wider">
-                <Tag className="h-3 w-3" />
-                <span>Filter</span>
-              </div>
-
-              {allUniqueTags.map((tag, index) => {
-                const isSelected = selectedTags.has(tag);
-                return (
-                  <motion.button
-                    key={tag}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.01 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleTagClick(tag)}
-                    className={`
-                        group relative rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-300
-                        ${
-                          isSelected
-                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/25 ring-1 ring-primary/50"
-                            : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40 hover:border-border"
-                        }
-                      `}
-                  >
-                    <span className="relative z-10">{tag}</span>
-                    {isSelected && (
-                      <motion.div
-                        layoutId="activeTagGlow"
-                        className="absolute inset-0 z-0 rounded-full bg-linear-to-tr from-white/10 to-transparent"
-                      />
-                    )}
-                  </motion.button>
-                );
-              })}
-
-              {selectedTags.size > 0 && (
-                <motion.button
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  onClick={() => setSelectedTags(new Set())}
-                  className="ml-2 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
-                >
-                  <X className="h-3 w-3" />
-                  Clear
-                </motion.button>
-              )}
-            </motion.div>
-          )}
         </div>
       </div>
 
-      {/* Results Stats */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="mb-6 flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
-          <Sparkles className="h-3 w-3" />
-          <span>
-            {filteredImages.length} Result{filteredImages.length !== 1 && "s"}
-          </span>
-        </div>
+      {/* 2. Sticky Navigation / Filter Bar */}
+      <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-xl border-b border-border/40 transition-all duration-300">
+         <div className="container mx-auto px-4 py-3">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-start justify-between gap-4">
+                {/* Tags Area */}
+                <div className="flex-1 overflow-hidden relative">
+                  {/* Fade Mask */}
+                  <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+                  
+                  <div className={`flex flex-wrap gap-2 ${!isTagsExpanded && "max-h-[40px] overflow-hidden transition-all duration-500 ease-out"}`}>
+                      <button
+                        onClick={() => {
+                          setSelectedTags(new Set());
+                          setSortBy("newest");
+                        }}
+                        className={`
+                          px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap
+                          ${selectedTags.size === 0 ? "bg-foreground text-background shadow-sm" : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"}
+                        `}
+                      >
+                        Home
+                      </button>
+                      
+                      {visibleTags.map(({ tag, count }) => {
+                        const isSelected = selectedTags.has(tag);
+                        return (
+                          <button
+                            key={tag}
+                            onClick={() => toggleTag(tag)}
+                            className={`
+                              flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 border whitespace-nowrap
+                              ${isSelected 
+                                ? "bg-primary text-primary-foreground border-primary shadow-md transform scale-105" 
+                                : "bg-background text-muted-foreground border-border/60 hover:border-foreground/30 hover:text-foreground hover:bg-muted/30"}
+                            `}
+                          >
+                            {tag}
+                            <span className={`text-[10px] font-semibold ${isSelected ? "opacity-100 text-primary-foreground/80" : "opacity-40"}`}>
+                              {count}
+                            </span>
+                          </button>
+                        );
+                      })}
+
+                      {/* Expand/Collapse Trigger */}
+                      {allTagsWithCounts.length > 15 && (
+                         <button 
+                           onClick={() => setIsTagsExpanded(!isTagsExpanded)}
+                           className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium text-primary hover:bg-primary/5 transition-colors border border-transparent hover:border-primary/20"
+                         >
+                           {isTagsExpanded ? (
+                             <>Show Less <ChevronUp size={14} /></>
+                           ) : (
+                             <>View All ({allTagsWithCounts.length}) <ChevronDown size={14} /></>
+                           )}
+                         </button>
+                      )}
+                  </div>
+                </div>
+
+                {/* Filter / Sort Trigger */}
+                <div className="flex-shrink-0 relative group z-50 pl-2 border-l border-border/40">
+                    <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium text-muted-foreground hover:text-foreground">
+                      <span className="hidden sm:inline">{sortBy === "newest" ? "Newest" : "Oldest"}</span>
+                      <Filter size={16} />
+                    </button>
+                    {/* Dropdown */}
+                    <div className="absolute right-0 top-full mt-2 w-36 bg-card/95 backdrop-blur-md border border-border rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform translate-y-2 group-hover:translate-y-0 z-50">
+                      <button 
+                        onClick={() => setSortBy("newest")}
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-muted/50 first:rounded-t-xl transition-colors"
+                      >
+                        Newest First
+                      </button>
+                      <button 
+                        onClick={() => setSortBy("oldest")}
+                        className="w-full text-left px-4 py-3 text-sm hover:bg-muted/50 last:rounded-b-xl transition-colors"
+                      >
+                        Oldest First
+                      </button>
+                    </div>
+                </div>
+              </div>
+            </div>
+         </div>
+      </div>
+
+      {/* 3. Masonry Grid */}
+      <div className="container mx-auto px-4 py-8 min-h-[60vh]">
+        {/* Results Count (Hidden if empty query) */}
+        {(searchQuery || selectedTags.size > 0) && (
+          <div className="mb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <h2 className="text-2xl font-semibold tracking-tight">
+              {filteredImages.length} Free Photos
+            </h2>
+          </div>
+        )}
 
         {filteredImages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-32 text-center">
-            <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted/30 shadow-inner">
-              <Search className="h-6 w-6 text-muted-foreground/40" />
+          <div className="flex flex-col items-center justify-center py-32 text-center opacity-60">
+            <div className="bg-muted/50 p-6 rounded-full mb-4">
+               <Search size={40} className="text-muted-foreground" />
             </div>
-            <h3 className="mb-2 text-base font-medium text-foreground">
-              No results found
-            </h3>
-            <p className="mb-8 max-w-xs text-sm text-muted-foreground">
-              Try adjusting your search or filters to find what you&apos;re
-              looking for.
+            <h3 className="text-xl font-semibold text-foreground">No images found</h3>
+            <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
+               Try adjusting your search terms or filters to find what you are looking for.
             </p>
-            <button
-              onClick={clearFilters}
-              className="rounded-full border border-border bg-background px-6 py-2 text-xs font-medium transition-colors hover:bg-muted hover:text-foreground"
-            >
-              Clear Filters
-            </button>
           </div>
         ) : (
-          <div className="columns-1 sm:columns-2 lg:columns-3 2xl:columns-4 gap-4">
-            {filteredImages.map((image) => {
-              const isLiked = localLikedPosts.has(image.id);
+          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 space-y-6">
+            {filteredImages.map((image, index) => {
+               const isLiked = localLikedPosts.has(image.id);
+               
+               return (
+                 <div key={image.id} className="break-inside-avoid mb-6">
+                   <motion.div
+                     initial={{ opacity: 0, y: 20 }}
+                     whileInView={{ opacity: 1, y: 0 }}
+                     viewport={{ once: true, margin: "100px" }}
+                     transition={{ duration: 0.5, delay: index * 0.05, ease: "easeOut" }}
+                     className="group relative w-full bg-card rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 ring-1 ring-black/5 dark:ring-white/10"
+                   >
+                     <Link href={`/gallery/${image.id}`} scroll={false}>
+                       <div className="relative w-full">
+                         <Image
+                           src={image.imageUrl}
+                           alt={image.prompt}
+                           width={800}
+                           height={1000}
+                           className="w-full h-auto object-cover block transition-transform duration-700 will-change-transform group-hover:scale-105"
+                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                         />
+                         
+                         {/* Hover Overlay - Pexels Style */}
+                         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            {/* Top Right Actions */}
+                            <div className="absolute top-3 right-3 flex gap-2 translate-y-[-10px] opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-75">
+                              <button 
+                                onClick={(e) => handleLikeToggle(e, image.id)}
+                                className={`p-2.5 rounded-full backdrop-blur-md transition-all transform hover:scale-110 active:scale-95 ${isLiked ? "bg-red-500 text-white shadow-lg shadow-red-500/20" : "bg-white/90 text-gray-700 hover:bg-white hover:text-black"}`}
+                              >
+                                <Heart size={18} className={isLiked ? "fill-current" : ""} />
+                              </button>
+                              <button 
+                                onClick={(e) => { e.preventDefault(); /* Add to collection logic */ }}
+                                className="p-2.5 rounded-full bg-white/90 text-gray-700 hover:bg-white hover:text-black backdrop-blur-md transform hover:scale-110 active:scale-95"
+                              >
+                                <TrendingUp size={18} />
+                              </button>
+                            </div>
 
-              return (
-                <div key={image.id} className="break-inside-avoid mb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: "50px" }}
-                    transition={{ duration: 0.4 }}
-                    className="group relative cursor-pointer w-full"
-                  >
-                    <Link
-                      href={`/gallery/${image.id}`}
-                      scroll={false}
-                      className="block w-full"
-                    >
-                      <div className="relative w-full overflow-hidden rounded-2xl bg-muted transition-all duration-500 hover:shadow-2xl dark:bg-muted/10 dark:shadow-black/50">
-                        <Image
-                          src={image.imageUrl}
-                          alt={image.prompt}
-                          width={500}
-                          height={500}
-                          className="h-auto w-full object-cover transition-transform duration-700 will-change-transform group-hover:scale-105"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        />
-
-                        {/* Overlay Gradient - Only shows on hover */}
-                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-
-                        {/* Top Badges */}
-                        <div className="absolute left-3 top-3 flex gap-2 opacity-0 transition-all duration-300 group-hover:opacity-100">
-                          <span className="rounded-md bg-black/40 px-2 py-1 text-[10px] font-medium text-white backdrop-blur-md border border-white/10">
-                            {image.aiModel || "AI"}
-                          </span>
-                        </div>
-
-                        {/* Action Buttons - Slide in from right */}
-                        <div className="absolute right-3 top-3 flex flex-col gap-2 translate-x-4 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100">
-                          <button
-                            onClick={(e) => handleLikeToggle(e, image.id)}
-                            className={`flex h-8 w-8 items-center justify-center rounded-full backdrop-blur-md transition-all ${
-                              isLiked
-                                ? "bg-red-500 text-white shadow-lg shadow-red-500/20"
-                                : "bg-black/40 text-white hover:bg-white hover:text-black"
-                            }`}
-                          >
-                            <Heart
-                              className={`h-3.5 w-3.5 ${
-                                isLiked ? "fill-current" : ""
-                              }`}
-                            />
-                          </button>
-                          <button
-                            onClick={(e) => handleDownload(e, image.imageUrl)}
-                            className="flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md transition-all hover:bg-white hover:text-black"
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-
-                        {/* Bottom Info - Slide up */}
-                        <div className="absolute bottom-0 left-0 right-0 translate-y-4 opacity-0 p-4 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
-                          <p className="line-clamp-2 text-xs font-medium leading-relaxed text-white/90">
-                            {image.prompt}
-                          </p>
-                          <div className="mt-2 flex items-center justify-between">
-                            <span className="text-[10px] text-white/60 uppercase tracking-wide">
-                              {image.tags?.[0] || "Uncategorized"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                </div>
-              );
+                            {/* Bottom Info Bar */}
+                            <div className="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+                               <div className="flex items-center gap-3 text-white max-w-[70%]">
+                                  <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold backdrop-blur-md shadow-inner border border-white/10 flex-shrink-0">
+                                    {image.aiModel ? image.aiModel.slice(0, 2).toUpperCase() : "AI"}
+                                  </div>
+                                  <div className="flex flex-col min-w-0">
+                                     <span className="text-sm font-semibold leading-none drop-shadow-md truncate">
+                                       {image.aiModel || "Unknown Model"}
+                                     </span>
+                                     <span className="text-[10px] opacity-90 font-medium truncate mt-1">
+                                       {image.tags?.[0] || "Promoted"}
+                                     </span>
+                                  </div>
+                                </div>
+                               <button 
+                                 onClick={(e) => handleDownload(e, image.imageUrl)}
+                                 className="p-2.5 rounded-full bg-white/90 text-gray-900 hover:bg-white transition-all transform hover:scale-110 active:scale-95 shadow-lg"
+                               >
+                                 <Download size={20} />
+                               </button>
+                            </div>
+                         </div>
+                       </div>
+                     </Link>
+                   </motion.div>
+                 </div>
+               );
             })}
           </div>
         )}
       </div>
     </div>
   );
-
 }

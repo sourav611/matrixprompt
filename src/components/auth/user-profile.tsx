@@ -1,134 +1,167 @@
 "use client";
 import { User } from "@supabase/supabase-js";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  DownloadIcon,
-  Folder,
-
-  ImageIcon,
-  LogOutIcon,
-
-  User2Icon,
-  UserCircle,
-  Zap,
+  Download,
+  FolderHeart,
+  Image as ImageIcon,
+  LogOut,
+  User as UserIcon,
+  Sparkles,
+  Settings,
+  CreditCard,
 } from "lucide-react";
 import { userLogoutAction } from "@/actions/users";
+import Link from "next/link";
 
-interface userProfileProps {
+interface UserProfileProps {
   user: User | null;
 }
 
-const menuItems = [
-  {
-    section: "usage",
-    items: [
-      { icon: DownloadIcon, label: "Downloads", count: "5 left" },
-      { icon: Zap, label: "Fast generations", count: "3 left", info: true },
-    ],
-  },
-  {
-    section: "profile",
-    items: [
-      { icon: User2Icon, label: "View profile" },
-      { icon: ImageIcon, label: "My images" },
-      { icon: Folder, label: "My collections" },
-    ],
-  },
-];
+export default function UserProfile({ user }: UserProfileProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-export default function UserProfile({ user }: userProfileProps) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+  // Close on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  // Generate initials or fallback
+  const userInitials = user?.email?.substring(0, 2).toUpperCase() || "U";
+  const userName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
+
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
+      {/* Trigger */}
       <button
-        className="p-2 hover:bg-muted"
-        onClick={() => setDropdownOpen(!dropdownOpen)}
+        onClick={() => setIsOpen(!isOpen)}
+        className={`
+          relative flex h-9 w-9 items-center justify-center rounded-full overflow-hidden border transition-all duration-300 ease-out
+          ${isOpen ? "ring-2 ring-primary ring-offset-2 border-transparent" : "border-border hover:border-primary/50"}
+        `}
       >
-        {dropdownOpen ? (
-          <div>
-            <UserCircle />
-          </div>
+        {user?.user_metadata?.avatar_url ? (
+           <img 
+             src={user.user_metadata.avatar_url} 
+             alt="Avatar" 
+             className="h-full w-full object-cover" 
+           />
         ) : (
-          <div>
-            <User2Icon />
-          </div>
+           <div className="h-full w-full bg-muted flex items-center justify-center text-xs font-semibold text-muted-foreground">
+             {userInitials}
+           </div>
         )}
       </button>
+
+      {/* Dropdown Panel */}
       <AnimatePresence>
-        {dropdownOpen && (
-          <>
-            {/* backdrop */}
-            <div
-              className="fixed inset-0 z-40"
-              onClick={() => setDropdownOpen(false)}
-            />
-            {/* profile dropdown  */}
-            <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.1 }}
-              className="absolute right-0 mt-2 w-80 max-w-xs bg-background rounded-lg shadow-2xl border border-border overflow-hidden z-50 max-h-[450px] flex flex-col"
-              style={{ width: "320px" }}
-            >
-              {/* Profile Section */}
-              <div className="bg-card border-b border-border shrink-0 p-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-linear-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center shrink-0">
-                    <User2Icon className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-white text-sm">
-                      {user?.email}
-                    </h3>
-                    <p className="text-xs text-slate-400">Free plan</p>
-                  </div>
-                  <button className="px-2 py-1 bg-yellow-400 text-slate-900 rounded-full text-xs font-semibold hover:bg-yellow-300 transition-colors shrink-0">
-                    Upgrade
-                  </button>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 8, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.96 }}
+            transition={{ duration: 0.2, ease: [0.32, 0.72, 0, 1] }}
+            className="absolute right-0 mt-3 w-72 origin-top-right rounded-2xl bg-popover/95 backdrop-blur-xl border border-border/50 shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden"
+          >
+            {/* Header Section */}
+            <div className="p-4 border-b border-border/40 bg-muted/30">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-primary border border-primary/10">
+                  {user?.user_metadata?.avatar_url ? (
+                    <img src={user.user_metadata.avatar_url} alt="Avatar" className="h-full w-full object-cover rounded-full" />
+                  ) : (
+                    <span className="font-bold text-sm">{userInitials}</span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">
+                    {userName}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">
+                    {user?.email}
+                  </p>
                 </div>
               </div>
-
-              {/* Menu Sections */}
-              <div className="overflow-y-auto flex-1">
-                {menuItems.map((section, sectionIndex) => (
-                  <div key={section.section}>
-                    {sectionIndex > 0 && (
-                      <div className="border-t border-slate-700" />
-                    )}
-                    <div className="py-1">
-                      {section.items.map((item, itemIndex) => {
-                        const Icon = item.icon;
-                        return (
-                          <motion.button
-                            key={itemIndex}
-                            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            transition={{ duration: 0.1 }}
-                            whileHover={{
-                              backgroundColor: "rgba(51, 65, 85, 0.5)",
-                            }}
-                            className="w-full px-3 py-2 flex items-center gap-2  transition-colors duration-200 text-left text-sm"
-                          >
-                            <Icon className="w-4 h-4 shrink-0" />
-                            <span className="flex-1 font-medium truncate">
-                              {item.label}
-                            </span>
-                          </motion.button>
-                        );
-                      })}
-                    </div>
+              
+              {/* Upgrade Banner */}
+              <div className="mt-3">
+                <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-gradient-to-r from-primary/10 to-transparent border border-primary/10 hover:border-primary/30 transition-all group">
+                  <div className="flex items-center gap-2">
+                    <Sparkles size={14} className="text-primary fill-primary/20" />
+                    <span className="text-xs font-medium text-primary">Upgrade Plan</span>
                   </div>
-                ))}
-                <motion.button onClick={async ()=> {await userLogoutAction()}} className="w-full cursor-pointer px-3 py-2 hover:bg-muted flex items-center gap-2  transition-colors duration-200 text-left text-sm">
-                  <LogOutIcon size={18} />
-                  <span className="flex-1 font-medium truncate">Log out</span>
-                </motion.button>
+                  <span className="text-[10px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded uppercase tracking-wide group-hover:scale-105 transition-transform">
+                    Pro
+                  </span>
+                </button>
               </div>
-            </motion.div>
-          </>
+            </div>
+
+            {/* Menu Items */}
+            <div className="p-2">
+              <div className="space-y-0.5">
+                <Link href="/profile" onClick={() => setIsOpen(false)}>
+                  <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-foreground/80 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                    <UserIcon size={16} />
+                    Profile
+                  </button>
+                </Link>
+                <Link href="/collections" onClick={() => setIsOpen(false)}>
+                  <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-foreground/80 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                    <FolderHeart size={16} />
+                    Collections
+                  </button>
+                </Link>
+                <Link href="/admin/dashboard" onClick={() => setIsOpen(false)}>
+                   <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-foreground/80 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                    <ImageIcon size={16} />
+                    Manage Images
+                  </button>
+                </Link>
+              </div>
+
+              <div className="my-2 h-px bg-border/50 mx-2" />
+
+              <div className="space-y-0.5">
+                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-foreground/80 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <Download size={16} />
+                  <span className="flex-1 text-left">Downloads</span>
+                  <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded-md">
+                    5 left
+                  </span>
+                </button>
+                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-foreground/80 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <CreditCard size={16} />
+                  Billing
+                </button>
+                <button className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-foreground/80 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors">
+                  <Settings size={16} />
+                  Settings
+                </button>
+              </div>
+
+              <div className="my-2 h-px bg-border/50 mx-2" />
+
+              <button
+                onClick={async () => {
+                  setIsOpen(false);
+                  await userLogoutAction();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+              >
+                <LogOut size={16} />
+                Log Out
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

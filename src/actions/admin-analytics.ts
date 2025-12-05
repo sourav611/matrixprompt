@@ -9,6 +9,7 @@ export interface AnalyticsData {
   uploadedToday: number;
   uploadedYesterday: number;
   last7Days: { date: string; count: number }[];
+  aiModels: { name: string; count: number }[];
 }
 
 export async function getAdminAnalytics(): Promise<AnalyticsData> {
@@ -79,10 +80,27 @@ export async function getAdminAnalytics(): Promise<AnalyticsData> {
     .map(([date, count]) => ({ date, count }))
     .reverse(); // Oldest first
 
+  // 5. AI Models Distribution
+  const aiModelsResult = await db
+    .select({
+      name: galleryImages.aiModel,
+      count: sql<number>`count(*)`,
+    })
+    .from(galleryImages)
+    .where(sql`${galleryImages.aiModel} IS NOT NULL AND ${galleryImages.aiModel} != ''`)
+    .groupBy(galleryImages.aiModel)
+    .orderBy(sql`count(*) desc`);
+
+  const aiModels = aiModelsResult.map((m) => ({
+    name: m.name!,
+    count: Number(m.count),
+  }));
+
   return {
     totalImages,
     uploadedToday,
     uploadedYesterday,
     last7Days,
+    aiModels,
   };
 }
