@@ -11,6 +11,7 @@ import {
   SlidersHorizontal,
   ArrowDownUp,
   Sparkles,
+  Tag,
 } from "lucide-react";
 import Link from "next/link";
 import { GalleryImage } from "@/types/image.types";
@@ -30,39 +31,42 @@ export default function GalleryFetchPage({
 }: GalleryFetchPageProps) {
   // State for interactivity
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
+  const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
 
   // Like System State
   const [localLikedPosts, setLocalLikedPosts] =
     useState<Set<string>>(likedPostIds);
   const [loadingPosts, setLoadingPosts] = useState<Set<string>>(new Set());
 
-  // Extract Unique Categories
-  const categories = useMemo(() => {
-    const cats = new Set(
-      images.map((img) => img.category).filter(Boolean) as string[]
-    );
-    return ["All", ...Array.from(cats)];
+  // Extract all unique tags
+  const allUniqueTags = useMemo(() => {
+    const tags = new Set<string>();
+    images.forEach((img) => {
+      img.tags?.forEach((tag) => tags.add(tag));
+    });
+    return Array.from(tags).sort((a, b) => a.localeCompare(b));
   }, [images]);
 
   // Filter and Sort Logic
   const filteredImages = useMemo(() => {
     let result = [...images];
 
-    // 1. Filter by Category
-    if (selectedCategory !== "All") {
-      result = result.filter((img) => img.category === selectedCategory);
-    }
-
-    // 2. Filter by Search Query
+    // 1. Filter by Search Query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (img) =>
           img.prompt.toLowerCase().includes(query) ||
           (img.aiModel && img.aiModel.toLowerCase().includes(query)) ||
-          (img.category && img.category.toLowerCase().includes(query))
+          (img.tags && img.tags.some((t) => t.toLowerCase().includes(query)))
+      );
+    }
+
+    // 2. Filter by Selected Tags
+    if (selectedTags.size > 0) {
+      result = result.filter((img) =>
+        img.tags?.some((tag) => selectedTags.has(tag))
       );
     }
 
@@ -74,7 +78,7 @@ export default function GalleryFetchPage({
     });
 
     return result;
-  }, [images, selectedCategory, searchQuery, sortBy]);
+  }, [images, searchQuery, sortBy, selectedTags]);
 
   const handleLikeToggle = async (e: React.MouseEvent, postId: string) => {
     e.preventDefault();
@@ -134,9 +138,21 @@ export default function GalleryFetchPage({
     window.open(imageUrl, "_blank");
   };
 
+  const handleTagClick = (tag: string) => {
+    setSelectedTags((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(tag)) {
+        newSet.delete(tag);
+      } else {
+        newSet.add(tag);
+      }
+      return newSet;
+    });
+  };
+
   const clearFilters = () => {
     setSearchQuery("");
-    setSelectedCategory("All");
+    setSelectedTags(new Set());
   };
 
   return (
@@ -181,38 +197,62 @@ export default function GalleryFetchPage({
               </div>
             </div>
           </div>
+          {/* Tags Display */}
+          {allUniqueTags.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-wrap items-center gap-2 pt-1"
+            >
+              <div className="flex items-center gap-1.5 mr-2 text-xs font-medium text-muted-foreground/60 uppercase tracking-wider">
+                <Tag className="h-3 w-3" />
+                <span>Filter</span>
+              </div>
 
-          {/* Categories - Horizontal Scroll */}
-          <div className="flex items-center gap-1 overflow-x-auto pb-1 scrollbar-hide mask-fade-right">
-            <SlidersHorizontal className="mr-2 h-3 w-3 shrink-0 text-muted-foreground/70" />
-            {categories.map((category) => {
-              const isSelected = selectedCategory === category;
-              return (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`relative px-3 py-1 text-[11px] font-medium transition-all rounded-full whitespace-nowrap ${
-                    isSelected
-                      ? "bg-foreground text-background shadow-sm"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                  }`}
+              {allUniqueTags.map((tag, index) => {
+                const isSelected = selectedTags.has(tag);
+                return (
+                  <motion.button
+                    key={tag}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.01 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => handleTagClick(tag)}
+                    className={`
+                        group relative rounded-full px-3.5 py-1.5 text-xs font-medium transition-all duration-300
+                        ${
+                          isSelected
+                            ? "bg-primary text-primary-foreground shadow-md shadow-primary/25 ring-1 ring-primary/50"
+                            : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-border/40 hover:border-border"
+                        }
+                      `}
+                  >
+                    <span className="relative z-10">{tag}</span>
+                    {isSelected && (
+                      <motion.div
+                        layoutId="activeTagGlow"
+                        className="absolute inset-0 z-0 rounded-full bg-linear-to-tr from-white/10 to-transparent"
+                      />
+                    )}
+                  </motion.button>
+                );
+              })}
+
+              {selectedTags.size > 0 && (
+                <motion.button
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  onClick={() => setSelectedTags(new Set())}
+                  className="ml-2 flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
                 >
-                  {isSelected && (
-                    <motion.span
-                      layoutId="activeCategory"
-                      className="absolute inset-0 -z-10 rounded-full bg-foreground"
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 30,
-                      }}
-                    />
-                  )}
-                  {category}
-                </button>
-              );
-            })}
-          </div>
+                  <X className="h-3 w-3" />
+                  Clear
+                </motion.button>
+              )}
+            </motion.div>
+          )}
         </div>
       </div>
 
@@ -223,12 +263,6 @@ export default function GalleryFetchPage({
           <span>
             {filteredImages.length} Result{filteredImages.length !== 1 && "s"}
           </span>
-          {selectedCategory !== "All" && (
-            <>
-              <span>•</span>
-              <span className="text-foreground">{selectedCategory}</span>
-            </>
-          )}
         </div>
 
         {filteredImages.length === 0 ? (
@@ -320,7 +354,7 @@ export default function GalleryFetchPage({
                           </p>
                           <div className="mt-2 flex items-center justify-between">
                             <span className="text-[10px] text-white/60 uppercase tracking-wide">
-                              {image.category}
+                              {image.tags?.[0] || "Uncategorized"}
                             </span>
                           </div>
                         </div>
@@ -335,4 +369,5 @@ export default function GalleryFetchPage({
       </div>
     </div>
   );
+
 }

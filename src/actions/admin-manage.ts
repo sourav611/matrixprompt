@@ -11,7 +11,6 @@ export interface AdminGalleryImage {
   imageUrl: string;
   prompt: string;
   aiModel: string | null;
-  category: string | null;
   createdAt: Date;
   tags: string[];
 }
@@ -23,7 +22,6 @@ export async function getAllImagesForAdmin(): Promise<AdminGalleryImage[]> {
       imageUrl: galleryImages.imageUrl,
       prompt: galleryImages.prompt,
       aiModel: galleryImages.aiModel,
-      category: galleryImages.category,
       createdAt: galleryImages.createdAt,
       tags: sql<string[]>`coalesce(array_agg(${tags.name}) filter (where ${tags.name} is not null), '{}')`,
     })

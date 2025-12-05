@@ -3,7 +3,6 @@ export type GalleryImage = {
   imageUrl: string;
   prompt: string;
   aiModel: string | null;
-  category: string | null;
   createdAt: Date;
   tags?: string[];
 };

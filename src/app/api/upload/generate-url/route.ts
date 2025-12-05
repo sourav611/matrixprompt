@@ -14,7 +14,7 @@ export async function POST(request: Request){
       return NextResponse.json({error: "Unauthorized request"}, {status: 401})
     }
 
-    const { fileName, fileSize, prompt, aiModel, category, tags: tagNames } =
+    const { fileName, fileSize, prompt, aiModel, tags: tagNames } =
       await request.json();
     //validate inputs 
     if(!fileName || !fileSize || !prompt){
@@ -35,7 +35,6 @@ export async function POST(request: Request){
         imageUrl: "pending-upload", 
         prompt,
         aiModel: aiModel || null,
-        category: category || null,
         fileSize,
         isPublic: true,
       }).returning();

@@ -39,7 +39,7 @@ export function AdminSidebar() {
       {/* Header / Logo */}
       <div className="h-16 flex items-center px-5 border-b border-sidebar-border/50 shrink-0 overflow-hidden">
         <div className="flex items-center gap-3 min-w-max">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-ring text-sidebar-primary-foreground shadow-md">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-sidebar-primary to-sidebar-ring text-sidebar-primary-foreground shadow-md">
             <Sparkles size={18} fill="currentColor" className="opacity-90" />
           </div>
           <motion.div variants={textVariants} className="whitespace-nowrap">
@@ -53,12 +53,12 @@ export function AdminSidebar() {
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-3 overflow-y-auto overflow-x-hidden scrollbar-thin">
         <div className="mb-2 px-2 overflow-hidden">
-           <motion.p
-                variants={textVariants}
-                className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 mb-2 whitespace-nowrap"
-            >
-                Menu
-            </motion.p>
+          <motion.p
+            variants={textVariants}
+            className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70 mb-2 whitespace-nowrap"
+          >
+            Menu
+          </motion.p>
         </div>
         {links.map((link) => {
           const isActive = pathname === link.href;
@@ -74,9 +74,14 @@ export function AdminSidebar() {
             >
               <link.icon
                 size={20}
-                className={`shrink-0 transition-colors ${!isActive && "group-hover:text-sidebar-foreground"}`}
+                className={`shrink-0 transition-colors ${
+                  !isActive && "group-hover:text-sidebar-foreground"
+                }`}
               />
-              <motion.span variants={textVariants} className="font-medium whitespace-nowrap text-sm">
+              <motion.span
+                variants={textVariants}
+                className="font-medium whitespace-nowrap text-sm"
+              >
                 {link.label}
               </motion.span>
 
@@ -96,27 +101,40 @@ export function AdminSidebar() {
       {/* Footer / User Section */}
       <div className="border-t border-sidebar-border p-3 shrink-0 bg-sidebar/50 backdrop-blur-sm overflow-hidden">
         <div className="flex flex-col gap-1 min-w-max">
-             {/* User Profile Stub */}
-            <button className="group flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent/50">
-                <div className="h-8 w-8 shrink-0 rounded-full bg-sidebar-accent border border-sidebar-border flex items-center justify-center overflow-hidden">
-                    <User size={16} className="text-sidebar-foreground/70" />
-                </div>
-                <motion.div variants={textVariants} className="flex flex-col items-start text-left">
-                    <span className="text-xs font-semibold truncate w-32">Admin User</span>
-                    <span className="text-[10px] text-muted-foreground truncate w-32">admin@artesia.com</span>
-                </motion.div>
-                 <motion.div variants={textVariants} className="ml-2">
-                    <ChevronRight size={14} className="text-muted-foreground group-hover:text-foreground" />
-                 </motion.div>
-            </button>
-            
-            {/* Logout */}
-            <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground/80 transition-all hover:bg-destructive/10 hover:text-destructive">
+          {/* User Profile Stub */}
+          <button className="group flex w-full items-center gap-3 rounded-lg px-2 py-2 text-sidebar-foreground transition-all hover:bg-sidebar-accent/50">
+            <div className="h-8 w-8 shrink-0 rounded-full bg-sidebar-accent border border-sidebar-border flex items-center justify-center overflow-hidden">
+              <User size={16} className="text-sidebar-foreground/70" />
+            </div>
+            <motion.div
+              variants={textVariants}
+              className="flex flex-col items-start text-left"
+            >
+              <span className="text-xs font-semibold truncate w-32">
+                Admin User
+              </span>
+              <span className="text-[10px] text-muted-foreground truncate w-32">
+                admin@artesia.com
+              </span>
+            </motion.div>
+            <motion.div variants={textVariants} className="ml-2">
+              <ChevronRight
+                size={14}
+                className="text-muted-foreground group-hover:text-foreground"
+              />
+            </motion.div>
+          </button>
+
+          {/* Logout */}
+          <button className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground/80 transition-all hover:bg-destructive/10 hover:text-destructive">
             <LogOut size={18} className="shrink-0" />
-            <motion.span variants={textVariants} className="font-medium whitespace-nowrap text-sm">
-                Logout
+            <motion.span
+              variants={textVariants}
+              className="font-medium whitespace-nowrap text-sm"
+            >
+              Logout
             </motion.span>
-            </button>
+          </button>
         </div>
       </div>
     </motion.aside>

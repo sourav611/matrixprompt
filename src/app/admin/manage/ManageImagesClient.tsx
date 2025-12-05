@@ -18,8 +18,7 @@ export default function ManageImagesClient({ initialImages }: ManageImagesClient
 
   const filteredImages = images.filter((img) =>
     img.prompt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (img.aiModel && img.aiModel.toLowerCase().includes(searchQuery.toLowerCase())) ||
-    (img.category && img.category.toLowerCase().includes(searchQuery.toLowerCase()))
+    (img.aiModel && img.aiModel.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const handleDelete = async (id: string, imageUrl: string) => {
@@ -81,7 +80,6 @@ export default function ManageImagesClient({ initialImages }: ManageImagesClient
                 <th className="px-6 py-4 font-semibold text-muted-foreground w-[80px]">Preview</th>
                 <th className="px-6 py-4 font-semibold text-muted-foreground">Prompt</th>
                 <th className="px-6 py-4 font-semibold text-muted-foreground w-[150px]">Model</th>
-                <th className="px-6 py-4 font-semibold text-muted-foreground w-[150px]">Category</th>
                 <th className="px-6 py-4 font-semibold text-muted-foreground w-[150px]">Date</th>
                 <th className="px-6 py-4 font-semibold text-muted-foreground text-right w-[100px]">Actions</th>
               </tr>
@@ -90,7 +88,7 @@ export default function ManageImagesClient({ initialImages }: ManageImagesClient
               <AnimatePresence>
                 {filteredImages.length === 0 ? (
                     <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                        <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
                             <div className="flex flex-col items-center gap-2">
                                 <AlertCircle className="h-8 w-8 opacity-20" />
                                 <p>No images found matching your search.</p>
@@ -140,9 +138,6 @@ export default function ManageImagesClient({ initialImages }: ManageImagesClient
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-100 dark:border-blue-800">
                                 {image.aiModel || "Unknown"}
                             </span>
-                        </td>
-                        <td className="px-6 py-3 text-muted-foreground">
-                            {image.category || "—"}
                         </td>
                         <td className="px-6 py-3 text-muted-foreground text-xs" suppressHydrationWarning>
                             {new Date(image.createdAt).toLocaleDateString("en-US")}

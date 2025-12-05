@@ -6,7 +6,6 @@ export default function ImageUploadForm() {
   const [file, setFile] = useState<File | null>(null);
   const [prompt, setPrompt] = useState("");
   const [aiModel, setAiModel] = useState("");
-  const [category, setCategory] = useState("");
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -34,7 +33,6 @@ export default function ImageUploadForm() {
           contentType: file.type,
           prompt,
           aiModel,
-          category,
         }),
       });
 
@@ -87,7 +85,6 @@ export default function ImageUploadForm() {
       setFile(null);
       setPrompt("");
       setAiModel("");
-      setCategory("");
       
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -136,20 +133,6 @@ export default function ImageUploadForm() {
           className="w-full border p-2 rounded"
           disabled={uploading}
           placeholder="e.g., DALL-E 3, Midjourney"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-2">
-          Category
-        </label>
-        <input
-          type="text"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="w-full border p-2 rounded"
-          disabled={uploading}
-          placeholder="e.g., Nature, Abstract"
         />
       </div>
 

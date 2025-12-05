@@ -10,7 +10,6 @@ export async function getImages() {
       imageUrl: galleryImages.imageUrl,
       prompt: galleryImages.prompt,
       aiModel: galleryImages.aiModel,
-      category: galleryImages.category,
       createdAt: galleryImages.createdAt,
       tags: sql<string[]>`coalesce(array_agg(${tags.name}) filter (where ${tags.name} is not null), '{}')`,
     })
@@ -35,7 +34,6 @@ export async function getImageById(id: string): Promise<GalleryImage | null> {
       imageUrl: galleryImages.imageUrl,
       prompt: galleryImages.prompt,
       aiModel: galleryImages.aiModel,
-      category: galleryImages.category,
       createdAt: galleryImages.createdAt,
       tags: sql<string[]>`coalesce(array_agg(${tags.name}) filter (where ${tags.name} is not null), '{}')`,
     })

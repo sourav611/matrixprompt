@@ -255,25 +255,14 @@ export default function ImageDetailClient({
             </div>
 
             {/* Specs Grid */}
-            <div className="mb-8 grid grid-cols-2 gap-4">
+            <div className="mb-8 grid grid-cols-1 gap-4">
               <div className="rounded-xl border border-border p-4">
                 <div className="mb-2 flex items-center gap-2 text-muted-foreground">
                   <Command className="h-4 w-4" />
                   <span className="text-xs font-medium uppercase">Model</span>
                 </div>
                 <p className="font-medium text-foreground">
-                  {imagedata.aiModel}
-                </p>
-              </div>
-              <div className="rounded-xl border border-border p-4">
-                <div className="mb-2 flex items-center gap-2 text-muted-foreground">
-                  <Layers className="h-4 w-4" />
-                  <span className="text-xs font-medium uppercase">
-                    Category
-                  </span>
-                </div>
-                <p className="font-medium text-foreground">
-                  {imagedata.category}
+                  {imagedata.aiModel || "Unknown Model"}
                 </p>
               </div>
             </div>

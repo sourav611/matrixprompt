@@ -67,3 +67,17 @@ Implemented a robust tagging infrastructure to support granular image organizati
     *   **Search Action (`src/actions/tags.ts`):** Implemented `searchTags(query)` to find tags by name, ordered by usage count, useful for autocomplete.
     *   **Transactional Uploads (`src/app/api/upload/generate-url/route.ts`):** Enhanced the image upload flow to accept a `tags` array. It uses a database transaction to create the image record and associate tags simultaneously, ensuring data integrity.
     *   **Data Aggregation (`src/lib/gallery-image.ts`):** Updated `getImages` and `getImageById` to include a `tags` array for each image using `LEFT JOIN` and `array_agg` SQL aggregation.
+
+### 🔄 Category to Tag Migration
+Refactored the data model to replace the rigid `category` column with the flexible Tagging System.
+
+*   **Schema Update:** Removed the `category` column from the `gallery_images` table.
+*   **Data Migration Script:** Implemented (and executed) a migration script (`src/migrate-categories.ts`) that:
+    1.  Iterated through all existing images.
+    2.  Converted their legacy `category` string (e.g., "Nature") into a Tag entity.
+    3.  Linked the new Tag to the Image in the `image_tags` table.
+*   **Frontend Updates:**
+    *   **Admin Dashboard:** Removed the Category text input; uploads now rely entirely on the Tagging System.
+    *   **Image Details:** Removed the dedicated "Category" display box.
+    *   **Gallery Feed:** Updated filtering logic to search against tags instead of the removed category field.
+    *   **Management Table:** Removed Category column, replaced with a Tags preview column.

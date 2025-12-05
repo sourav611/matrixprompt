@@ -213,9 +213,6 @@ export default function AdminDashboardPage({ analytics }: AdminDashboardProps) {
           contentType: selectedFile.type,
           prompt,
           aiModel,
-          // We still pass a 'category' for backward compatibility if needed,
-          // but relying on 'tags' is better. Using the first tag as a fallback category.
-          category: selectedTags[0] || "Uncategorized",
           tags: selectedTags,
         }),
       });
